@@ -12,9 +12,8 @@ if (!requireNamespace("energy", quietly = TRUE)) {
 library('invgamma')
 library('FNN')
 library('energy')
-library('scoringRules')
 
-AddiVortes_Algorithm<-function(y,x,m = 200, m_var = 40 ,max_iter = 1200,burn_in= 200,nu = 6,q =0.85,k = 3 ,sd = 0.8 ,Omega = 3,lambda_rate = 25,YTest,XTest,IntialSigma = "Linear",thinning=1){
+AddiVortes_Algorithm<-function(y,x,m = 200, m_var = 40 ,max_iter = 1200,burn_in= 200,nu = 6,q =0.85,k = 3 ,sd = 0.8 ,Omega = 3,lambda_rate = 25,YTest,XTest,IntialSigma = "Linear",thinning=1,plot_qq = TRUE){
 
   #Scaling x and y
   yScaled=(y-(max(y)+min(y))/2)/(max(y)-min(y))
@@ -152,7 +151,7 @@ AddiVortes_Algorithm<-function(y,x,m = 200, m_var = 40 ,max_iter = 1200,burn_in=
     if (i %% 100 == 0){
       cat(sprintf("Iteration %d out of %d", i, max_iter), "\n")
     }
-    
+    print(i)
     if (i>burn_in & (i-burn_in) %% thinning ==0 ){ #vectors that hold the predictions for each iteration after burn in.
       PredictionMatrix[,(i-burn_in)/thinning]=SumOfAllTess;
       TestMatrix[,(i-burn_in)/thinning]=TestPrediction(XTest,m,Tess,Dim,Pred);
@@ -197,37 +196,29 @@ AddiVortes_Algorithm<-function(y,x,m = 200, m_var = 40 ,max_iter = 1200,burn_in=
     }
   }
   
-  ##dims
-  nd = nrow(t(TestMatrix))
-  np = ncol(t(TestMatrix))
-
-  ##draw from predictive
-  pdraw = t(TestMatrix*(max(y)-min(y))+((max(y)+min(y))/2)) + t(sqrt(Sigma_squared_test)) * matrix(rnorm(nd*np),nrow=nd)
-
-  ## predictive qqplot
-  #yquantile = qsamp(f(X[TestSet,]),pdraw)
-  yquantile = qsamp(YTest,pdraw)
-  unifdr = runif(1000)
-  plot(qqplot(yquantile,unifdr,plot.it = FALSE)$x,qqplot(yquantile,unifdr,plot.it = FALSE)$y,pch=20,cex=1.2)
-  #points(qqplot(yquantile,unifdr,plot.it = FALSE)$x,qqplot(yquantile,unifdr,plot.it = FALSE)$y,pch=20,cex=1.2)
-  abline(0,1,col='red',lwd=2)
-  qvec = qsamp(YTest,pdraw)
-  test_result<-edist(matrix(c(qvec,runif(1000)),ncol=1),c(np,1000))
+  test_result<-NA
+  pdraw<-NA
   
  
-  #combined_samples <- as.matrix(rbind(as.matrix(yquantile), as.matrix(unifdr)))
-  #test_result <- eqdist.e(combined_samples, sizes = c(length(YTest), length(unifdr)), distance = FALSE)
-  print(test_result)
-  #print(pdraw)
-  pdraw<-t(pdraw)
-  # Calculate CRPS for each test observation 
-  crps_values <- sapply(1:nrow(pdraw), function(i) { 
-    crps_sample(y = YTest[i], dat = pdraw[i, ]) 
-    }) 
-  # Calculate the mean CRPS for the test set 
-  mean_crps <- mean(crps_values) 
-  # Print result 
-  cat("Mean CRPS for test set:", mean_crps, "\n")
+  ## predictive qqplot
+  if(plot_qq == TRUE){
+    ##dims
+    nd = nrow(t(TestMatrix))
+    np = ncol(t(TestMatrix))
+    
+    ##draw from predictive
+    pdraw = t(TestMatrix*(max(y)-min(y))+((max(y)+min(y))/2)) + t(sqrt(Sigma_squared_test)) * matrix(rnorm(nd*np),nrow=nd)
+    
+    
+    yquantile = qsamp(YTest,pdraw)
+    unifdr = runif(1000)
+    qqplot(yquantile,unifdr,pch=16,col='grey', ylab=NA, xlab = "Sample Quantile")
+    points(qqplot(yquantile,unifdr,plot.it = FALSE)$x,qqplot(yquantile,unifdr,plot.it = FALSE)$y,pch=16,col='black')
+    abline(0,1,col='red',lwd=3)
+    
+    test_result<-edist(matrix(c(yquantile,runif(1000)),ncol=1),c(np,1000))
+    
+  }
   
   return( #Returns the RMSE value for the test samples.
     ##test_result)

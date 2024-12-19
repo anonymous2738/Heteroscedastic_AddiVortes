@@ -15,12 +15,16 @@ if (!requireNamespace("FNN", quietly = TRUE)) {
 if (!requireNamespace("energy", quietly = TRUE)) {
   install.packages("energy")
 }
+if (!requireNamespace("plotrix", quietly = TRUE)) {
+  install.packages("plotrix")
+}
 
 library('invgamma')
 library('FNN')
 library('energy')
 library(doParallel)
 library(foreach)
+library(plotrix)
 
 AddiVortes_Algorithm<-function(y,x,m = 200, m_var = 40 ,max_iter = 1200,burn_in= 200,nu = 6,q =0.85,k = 3 ,sd = 0.8 ,Omega = 3,lambda_rate = 25,YTest,XTest,IntialSigma = "Linear",thinning=1){
   

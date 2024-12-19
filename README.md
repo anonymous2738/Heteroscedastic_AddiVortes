@@ -64,7 +64,7 @@ If “Linear”, the rough estimate of σ is based on the residual standard devi
 
 `thinning`- Retaining every posterior post burn in sample equal to thinning. Default retains every posterior sample post burn in.
 
-`plot_qq` - If TRUE will plot a predictive qqplot and give an estatistic.
+`plot_qq` - If TRUE will plot a predictive qqplot and give the estatistic.
 
 ### Values
 
@@ -72,9 +72,9 @@ If “Linear”, the rough estimate of σ is based on the residual standard devi
 
 `Out_of_sample_RMSE`- The RMSE of the out-of-sample estimations.
 
-`e_stat` - If plot.it is TRUE, then will give the e-statistic.
+`e_stat` - If plot_qq is TRUE, then will give the e-statistic.
 
-Benchmark Real Datasets
+Real Datasets
 -----------------------------
 
 To import the real-world benchmark datasets used in the paper in Rstudio one can run the following code:

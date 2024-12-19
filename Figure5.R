@@ -12,11 +12,15 @@ if (!requireNamespace("hbart", quietly = TRUE)) {
   library(devtools)
   install_github("rsparapa/bnptools", subdir="hbart")
 }
+if (!requireNamespace("plotrix", quietly = TRUE)) {
+  install.packages("plotrix")
+}
 
 library(hbart)
 library('invgamma')
 library('FNN')
 library('energy')
+library(plotrix)
 
 AddiVortes_Algorithm<-function(y,x,m = 200, m_var = 40 ,max_iter = 1200,burn_in= 200,nu = 6,q =0.85,k = 3 ,sd = 0.8 ,Omega = 3,lambda_rate = 25,YTest,XTest,IntialSigma = "Linear",thinning=1,plot_qq = TRUE){
 

@@ -80,36 +80,62 @@ Real Datasets
 To import the real-world benchmark datasets used in the paper in Rstudio one can run the following code:
 
 ```r
-source_url("https://raw.githubusercontent.com/Adam-Stone2/AddiVortes/main/Datasets.R")
+# Load necessary library if you haven't already
+if (!requireNamespace("readr", quietly = TRUE)) {
+  install.packages("readr")
+}
+# Load the necessary library
+library(readr)
 
-```
+Car_dataset <- read_csv("https://raw.githubusercontent.com/anonymous2738/Heteroscedastic_AddiVortes/main/Car_dataset.csv")
+X_Car_dataset <- as.matrix(Car_dataset[,2:15])
+Y_Car_dataset <- as.numeric(as.matrix(Car_dataset[,1]))
 
-For each dataset, this imports the full datasets and the feature matrix (X_dataset) and output variable (Y_dataset) so that the Addivortes algorithm can be implemented. For example, to run the AddiVortes algorithm for the Boston dataset, use the following code:
 
-```r
-Boston #Full Boston dataset
-
-n <- length(Y_Boston)
-TrainSet <- sort(sample.int(n,5*n/6))
+n <- length(Y_Car_dataset)
+TrainSet <- sort(sample.int(n,4*n/5))
 TestSet <- 1:n
 TestSet <- TestSet[! TestSet %in% TrainSet]
 
- AddiVortes_Algorithm(Y_Boston[TrainSet],X_Boston[TrainSet,],
-                      200,2000,200,6,0.85,3,0.8,3,25,
-                      Y_Boston[TestSet],X_Boston[TestSet,],
-                      IntialSigma = "Linear")
-
+AddiVortes_Algorithm(Y_Car_dataset[TrainSet],X_Car_dataset[TrainSet,],
+                     200,40,2000,200,6,0.85,3,0.8,3,25,
+                     Y_Car_dataset[TestSet],X_Car_dataset[TestSet,],
+                     IntialSigma = "Linear")
 ```
+
 Reproducing Figures in the paper 
 ---------------------------
 
-To reproduce the figures in the paper, source the following Github page by running:
+**Warning:** These figure use parallel processing using up to 10 cores at a time, producing these figure is only recommended if you have 12+ cores.
+
+To reproduce the figures 1-4 in the paper, source the following Github page by running:
 
 ```r
 
-source_url("https://raw.githubusercontent.com/Adam-Stone2/AddiVortes/main/CodeForFigures.R")
+source_url("https://raw.githubusercontent.com/anonymous2738/Heteroscedastic_AddiVortes/main/Figure1-4.R")
 
 ```
+To reproduce the figures 5 in the paper, source the following Github page by running:
 
-**Warning:** This figure uses parallel processing using 10 cores at a time, producing this figure is only recommended if you have 12+ cores.
+```r
+
+source_url("https://raw.githubusercontent.com/anonymous2738/Heteroscedastic_AddiVortes/main/Figure5.R")
+
+```
+To reproduce the figures 6 in the paper, source the following Github page by running:
+
+```r
+
+source_url("https://raw.githubusercontent.com/anonymous2738/Heteroscedastic_AddiVortes/main/Figure6.R")
+
+```
+To reproduce the figures 7 in the paper, source the following Github page by running:
+
+**Warning:** This Figure takes a long time to run (+3hours).
+
+```r
+
+source_url("https://raw.githubusercontent.com/anonymous2738/Heteroscedastic_AddiVortes/main/Figure7.R")
+
+```
 

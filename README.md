@@ -29,7 +29,7 @@ The following function can then be used in Rstudio.
 ```r
  AddiVortes_Algorithm(y, x, m = 200, max_iter = 1200, burn_in = 200,
                        nu = 6, q =0.85, k = 3, sd = 0.8, Omega = 3,
-                       lambda_rate = 25, YTest, XTest, IntialSigma = "Linear", thinning = 1)
+                       lambda_rate = 25, YTest, XTest, IntialSigma = "Linear", thinning = 1, plot_qq=TRUE)
 ```
 ### Arguments
 
@@ -74,10 +74,10 @@ If “Linear”, the rough estimate of σ is based on the residual standard devi
 
 `e_stat` - If plot_qq is TRUE, then will give the e-statistic.
 
-Real Datasets
+Car Datasets
 -----------------------------
 
-To import the real-world benchmark datasets used in the paper in Rstudio one can run the following code:
+To import the car dataset used in the paper and run Heteroscedastic AddiVortes in Rstudio one can run the following code:
 
 ```r
 # Load necessary library if you haven't already

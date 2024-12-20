@@ -8,11 +8,7 @@ if (!requireNamespace("FNN", quietly = TRUE)) {
 if (!requireNamespace("energy", quietly = TRUE)) {
   install.packages("energy")
 }
-if (!requireNamespace("gsl", quietly = TRUE)) {
-  install.packages("gsl")
-}
 
-library(gsl)
 library('invgamma')
 library('FNN')
 library('energy')

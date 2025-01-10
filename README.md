@@ -12,6 +12,43 @@ Department of Mathematical Sciences, Durham University
 Setup Instructions
 ------------------
 
+# Installing GSL package
+
+The `energy` package in R depends on the GNU Scientific Library (GSL). If you encounter an error like **"GSL not found"**, follow these steps to resolve the issue.
+
+## Step 1: Install GSL
+
+You must have GSL installed on your system. The installation steps vary depending on your operating system:
+
+### Linux (Debian/Ubuntu)
+Run the following command in your terminal:
+```bash
+sudo apt-get install libgsl-dev
+```
+
+### macOS
+1. Install Homebrew if you don't already have it. Open Terminal and run:
+   ```bash
+   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+
+Then run the following in the terminal:
+```bash
+brew install gsl
+```
+
+### Windows
+
+Download and install the latest version of Rtools.
+
+After installation, verify that Rtools is properly set up by opening a Command Prompt and running:
+```bash
+gcc --version
+```
+This should display the version of GCC included with Rtools. If it doesn't, ensure Rtools is added to your PATH.
+
+### Installing the Heteroscedastic Algorithm
+
 To install the AddiVortes functions in R, you can run the following code: 
 
 ```r

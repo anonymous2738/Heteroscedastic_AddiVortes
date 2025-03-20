@@ -23,7 +23,7 @@ library('energy')
 library(plotrix)
 
 AddiVortes_Algorithm<-function(y,x,m = 200, m_var = 40 ,max_iter = 1200,burn_in= 200,nu = 6,q =0.85,k = 3 ,sd = 0.8 ,Omega = 3,lambda_rate = 25,YTest,XTest,IntialSigma = "Linear",thinning=1,plot_qq = TRUE){
-
+  
   #Scaling x and y
   yScaled=(y-(max(y)+min(y))/2)/(max(y)-min(y))
   xScaled=x;
@@ -76,13 +76,13 @@ AddiVortes_Algorithm<-function(y,x,m = 200, m_var = 40 ,max_iter = 1200,burn_in=
                   lower = 0.001,
                   upper = 100,
                   q=q , nu=nu, sigmaSquared_hat=SigmaSquaredHat)$par
-
+  
   lambda<-lambda^(1/m_var)
   nu<-2/(1-(1-2/nu)^(1/m_var))
   
   SigmaSquared_inital=SigmaSquaredCalculation_initial(yScaled,nu,lambda,SumOfAllTess)
   #SigmaSquared_inital=var(yScaled)
-    
+  
   ## variance intialistation ##
   
   Pred_var<-rep(list(matrix((SigmaSquared_inital)^(1/m_var))),m_var)
@@ -136,7 +136,7 @@ AddiVortes_Algorithm<-function(y,x,m = 200, m_var = 40 ,max_iter = 1200,burn_in=
       if (!any(SigmaSquared_ijNew==0)){ #automatically rejects proposed tessellation if there exists a cell with no observations in.
         
         LOGAcceptenceProb=AlphaCalculation(xScaled,TessStar,DimStar,j,R_ijOld,SigmaSquared_ijOld,R_ijNew,SigmaSquared_ijNew,Modification,SigmaSquaredMu,Omega,lambda_rate) #Gives the log of the acceptence probability.
-
+        
         if (log(runif(n=1, min=0, max=1))<LOGAcceptenceProb){ #Accepts the proposed tessellation is accepted then calculates the new output values for the new tessellation. 
           Tess=TessStar
           Dim=DimStar
@@ -160,7 +160,7 @@ AddiVortes_Algorithm<-function(y,x,m = 200, m_var = 40 ,max_iter = 1200,burn_in=
     if (i %% 100 == 0){
       cat(sprintf("Iteration %d out of %d", i, max_iter), "\n")
     }
-    print(i)
+    #print(i)
     if (i>burn_in & (i-burn_in) %% thinning ==0 ){ #vectors that hold the predictions for each iteration after burn in.
       PredictionMatrix[,(i-burn_in)/thinning]=SumOfAllTess;
       TestMatrix[,(i-burn_in)/thinning]=TestPrediction(XTest,m,Tess,Dim,Pred);
@@ -175,7 +175,7 @@ AddiVortes_Algorithm<-function(y,x,m = 200, m_var = 40 ,max_iter = 1200,burn_in=
   #print(TestMatrix)
   LowerConfidenceTRAINValue<-vector(length=length(mean_yhat_Test))
   UpperConfidenceTRAINValue<-vector(length=length(mean_yhat_Test))
-
+  
   for (i in 1:length(mean_yhat_Test)){
     Sigma_squared_sorted[i,]<-sort(sqrt(Sigma_squared_test[i,]))
     
@@ -194,7 +194,7 @@ AddiVortes_Algorithm<-function(y,x,m = 200, m_var = 40 ,max_iter = 1200,burn_in=
   
   for (i in 1:length(mean_yhat_Test)){
     TestMatrix[i,]<-sort(TestMatrix[i,])
-  
+    
     if ((((max_iter-burn_in+1)*0.05))== round((max_iter-burn_in+1)*0.05)){
       LowerConfidenceTESTValue[i]<-(TestMatrix[i,(max_iter-burn_in+1)*0.05])*(max(y)-min(y))+((max(y)+min(y))/2)
       UpperConfidenceTESTValue[i]<-(TestMatrix[i,(max_iter-burn_in+1)*0.95])*(max(y)-min(y))+((max(y)+min(y))/2)
@@ -208,7 +208,7 @@ AddiVortes_Algorithm<-function(y,x,m = 200, m_var = 40 ,max_iter = 1200,burn_in=
   test_result<-NA
   pdraw<-NA
   
- 
+  
   ## predictive qqplot
   if(plot_qq == TRUE){
     ##dims
@@ -221,7 +221,7 @@ AddiVortes_Algorithm<-function(y,x,m = 200, m_var = 40 ,max_iter = 1200,burn_in=
     
     yquantile = qsamp(YTest,pdraw)
     unifdr = runif(1000)
-    qqplot(yquantile,unifdr,pch=16,col='grey', ylab=NA, xlab = "Sample Quantile")
+    ##qqplot(yquantile,unifdr,pch=16,col='grey', ylab=NA, xlab = "Sample Quantile")
     points(qqplot(yquantile,unifdr,plot.it = FALSE)$x,qqplot(yquantile,unifdr,plot.it = FALSE)$y,pch=16,col='black')
     abline(0,1,col='red',lwd=3)
     
@@ -331,8 +331,8 @@ AlphaCalculation<-function(x,Tess,Dim,j,R_ijOld, SigmaSquared_old, R_ijNew,Sigma
   
   #The Log Likelihood Ratio in the acceptence ratio
   LOGlikelihoodRatio=0.5*(log(prod(1+SigmaSquaredMu*SigmaSquared_old))-log(prod(1+SigmaSquaredMu*SigmaSquared_new)))+((SigmaSquaredMu/2)*(-sum((R_ijOld^2)/(1+SigmaSquaredMu*SigmaSquared_old))+sum((R_ijNew^2)/(1+SigmaSquaredMu*SigmaSquared_new))))
-
-    #Calculating the acceptence probablity for "AD"=Adding a dimension, "RD"=Removing a dimension, "AC"=Adding a center, "RC"=Removing a center, "Change"=Changing the coordinates of a center and Swopping a dimension.
+  
+  #Calculating the acceptence probablity for "AD"=Adding a dimension, "RD"=Removing a dimension, "AC"=Adding a center, "RC"=Removing a center, "Change"=Changing the coordinates of a center and Swopping a dimension.
   if (Modification == "AD"){ 
     TessStructure=(dbinom(d-1,NumCovariates-1,Omega/NumCovariates))/(dbinom(d-2,NumCovariates-1,Omega/NumCovariates)*(NumCovariates-d+1))
     TransitionRatio=(NumCovariates-d+1)/d;
@@ -454,9 +454,9 @@ SigmaSquaredCalculation<-function(xScaled, yScaled,Tess_var,Dim_var,Pred_var, nu
     ProdOfAllTess<-ResidualsOutput[[7]]
     IndexesStar<-ResidualsOutput[[8]]
     indexes<-ResidualsOutput[[9]]
-
+    
     if (!any(e_squared_ijNew==0)){ #automatically rejects proposed tessellation if there exists a cell with no observations in.
-
+      
       LOGAcceptenceProb=AlphaCalculation_Variance(xScaled,TessStar_var,DimStar_var,j,e_squared_ijOld,n_ijOld,e_squared_ijNew,n_ijNew,Modification_var,nu,lambda,Omega,lambda_rate) #Gives the log of the acceptence probability.
       
       if (log(runif(n=1, min=0, max=1))<LOGAcceptenceProb){ #Accepts the proposed tessellation is accepted then calculates the new output values for the new tessellation. 
@@ -465,8 +465,8 @@ SigmaSquaredCalculation<-function(xScaled, yScaled,Tess_var,Dim_var,Pred_var, nu
         Pred_var[[j]]=New_Variance_set(j,Tess_var,e_squared_ijNew,nu,lambda,n_ijNew)
         LastTessPred_var=Pred_var[[j]][IndexesStar]
         #if(Modification_var=='AC'){
-          #print('accept')
-          #print(Modification_var)
+        #print('accept')
+        #print(Modification_var)
         #}
       }
       else { #Rejects the proposed tesellation then calculates new output values for the original tessellation.
@@ -506,9 +506,9 @@ Calculate_variance_Residuals<-function(y,x,j,ProdOfAllTess,Tess_var,Dim_var,Pred
     CurrentTessPred<-Pred_var[[j]][indexes]
     ProdOfAllTess=ProdOfAllTess*LastTessPred_var/CurrentTessPred;
   }
-
+  
   IndexesStar=Indexes(x,TessStar_var[[j]],DimStar_var[[j]]);
-
+  
   #Initializing Sizes
   e_squared_ijOld=rep(0,length(Pred_var[[j]]))
   Resid_by_s_ijOld=rep(0,length(Pred_var[[j]]))
@@ -528,10 +528,10 @@ Calculate_variance_Residuals<-function(y,x,j,ProdOfAllTess,Tess_var,Dim_var,Pred
     e_squared_ijNew[i]<-sum(Numerator_e[IndexesStar==i]/ProdOfAllTess[IndexesStar==i])
     Resid_by_s_ijNew[i]<-sum(Numerator_e[IndexesStar==i]/(ProdOfAllTess[IndexesStar==i])^2)
     n_ijNew[i]<-sum(IndexesStar==i)
-
+    
     
   }
-
+  
   return(list(e_squared_ijOld,Resid_by_s_ijOld,n_ijOld,e_squared_ijNew,Resid_by_s_ijNew,n_ijNew,ProdOfAllTess,IndexesStar,indexes))
 }
 
@@ -544,12 +544,7 @@ AlphaCalculation_Variance<-function(x,Tess_var,Dim_var,j,e_squared_ijOld,n_ijOld
   
   #The Log Likelihood Ratio in the acceptence ratio
   LOGlikelihoodRatio=sum(lgamma((nu+n_ijNew)/2))-sum(lgamma((nu+n_ijOld)/2))-sum(((nu+n_ijNew)/2)*log((nu*lambda+e_squared_ijNew)/2))+sum(((nu+n_ijOld)/2)*log((nu*lambda+e_squared_ijOld)/2))
-
-  ##print('Log likihood')
-  ##print(Modification)
-  ##print(sum(lgamma((nu+n_ijNew)/2))-sum(lgamma((nu+n_ijOld)/2)))
-  ##print(-sum(((nu+n_ijNew)/2)*log(nu*lambda+e_squared_ijNew))+sum(((nu+n_ijOld)/2)*log(nu*lambda+e_squared_ijOld)))
-  ##print((nu/2)*log(nu*lambda/2)-log(lgamma(nu/2)))
+  
   
   #Calculating the acceptence probablity for "AD"=Adding a dimension, "RD"=Removing a dimension, "AC"=Adding a center, "RC"=Removing a center, "Change"=Changing the coordinates of a center and Swopping a dimension.
   if (Modification == "AD"){ 
@@ -581,7 +576,7 @@ AlphaCalculation_Variance<-function(x,Tess_var,Dim_var,j,e_squared_ijOld,n_ijOld
     TessStructure=dpois(cStar-1,lambda_rate)/dpois(cStar-2,lambda_rate)
     TransitionRatio=1/cStar;
     AcceptenceProb=LOGlikelihoodRatio+log(TessStructure)+log(TransitionRatio)+(nu/2)*log(nu*lambda/2)-lgamma(nu/2)
-
+    
     #Adjustments.
     if (cStar==1){
       AcceptenceProb=AcceptenceProb+log(1/2);
@@ -615,7 +610,7 @@ New_Variance_set<-function(j,Tess_var,Resid_by_s,nu,lambda,n){ #Sampling the new
   for (i in 1:length(Tess_var[[j]][,1])){
     Pred_var_Set[i]<-rinvgamma(1,shape=(nu+n[i])/2,rate=(nu*lambda+(Resid_by_s[i]))/2)
   }
-
+  
   return(Pred_var_Set)
   
 }
@@ -635,7 +630,7 @@ TestPrediction_var<-function(x,m,Tess_var,Dim_var,Pred_var){ #A function that de
     NewTessIndexes=Indexes(x,Tess_var[[j]],Dim_var[[j]]);
     Prediction=Prediction*Pred_var[[j]][NewTessIndexes]
   }
-
+  
   return(Prediction)
 }
 
@@ -672,7 +667,7 @@ Homo_AddiVortes_Algorithm<-function(y,x,m = 200 ,max_iter = 1200,burn_in= 200,nu
   LastTessPred=matrix
   
   #Matrices that will hold the samples from the poseterior distribution for the training samples and test samples.
-  posterior_samples<-floor((max_iter - burn_in) / thinning)+1
+  posterior_samples<-floor((max_iter - burn_in) / thinning)
   PredictionMatrix<-array(dim=c(length(y),posterior_samples))
   TestMatrix<-array(dim=c(length(YTest),posterior_samples))
   
@@ -720,7 +715,7 @@ Homo_AddiVortes_Algorithm<-function(y,x,m = 200 ,max_iter = 1200,burn_in= 200,nu
       Indexes<-ResidualsOutput[[7]]  #Gives the row of each observation for the cell it falls in for the original tessellation.
       
       if (!any(n_ijNew==0)){ #automatically rejects proposed tessellation if there exists a cell with no observations in.
-    
+        
         LOGAcceptenceProb=Homo_AlphaCalculation(xScaled,TessStar,DimStar,j,R_ijOld,n_ijOld,R_ijNew,n_ijNew,SigmaSquared,Modification,SigmaSquaredMu,Omega,lambda_rate) #Gives the log of the acceptence probability.
         
         if (log(runif(n=1, min=0, max=1))<LOGAcceptenceProb){ #Accepts the proposed tessellation is accepted then calculates the new output values for the new tessellation. 
@@ -747,9 +742,9 @@ Homo_AddiVortes_Algorithm<-function(y,x,m = 200 ,max_iter = 1200,burn_in= 200,nu
       cat(sprintf("Iteration %d out of %d", i, max_iter), "\n")
     }
     
-    if (i>=burn_in & (i-burn_in) %% thinning ==0 ){ #vectors that hold the predictions for each iteration after burn in.
-      PredictionMatrix[,1+(i-burn_in)/thinning]=SumOfAllTess;
-      TestMatrix[,1+(i-burn_in)/thinning]=Homo_TestPrediction(XTest,m,Tess,Dim,Pred);
+    if (i>burn_in & (i-burn_in) %% thinning ==0 ){ #vectors that hold the predictions for each iteration after burn in.
+      PredictionMatrix[,(i-burn_in)/thinning]=SumOfAllTess;
+      TestMatrix[,(i-burn_in)/thinning]=Homo_TestPrediction(XTest,m,Tess,Dim,Pred);
     }
   }
   
@@ -760,18 +755,22 @@ Homo_AddiVortes_Algorithm<-function(y,x,m = 200 ,max_iter = 1200,burn_in= 200,nu
   ##dims
   np = ncol(t(TestMatrix))
   
+  print(sqrt(Sigma_squared_test))
+  print(matrix(rnorm(length(YTest)*posterior_samples),nrow=length(YTest)))
+  print(sqrt(Sigma_squared_test) * matrix(rnorm(length(YTest)*posterior_samples),nrow=length(YTest)))
+  
   ##draw from predictive
-  pdraw = t(TestMatrix*(max(y)-min(y))+((max(y)+min(y))/2)) + t(sqrt(Sigma_squared_test) * matrix(rnorm(length(YTest)*posterior_samples),nrow=length(YTest)))
+  pdraw = t(TestMatrix*(max(y)-min(y))+((max(y)+min(y))/2)) + t(sqrt(Sigma_squared_test) * matrix(rnorm(length(YTest)*(posterior_samples)),nrow=length(YTest)))
   
   ## predictive qqplot
   yquantile = qsamp(YTest,pdraw)
   unifdr = runif(10000)
-  qqplot(yquantile,unifdr, ylab = "uniform", xlab = "sample quantile",col='blue', pch =17,cex=1.2)
+  qqplot(yquantile,unifdr, ylab = "uniform", xlab = "sample quantile",col='grey', pch =16)
   abline(0,1,col='red')
   
   combined_samples <- as.matrix(rbind(as.matrix(yquantile), as.matrix(unifdr)))
   test_result <- eqdist.etest(combined_samples, sizes = c(length(YTest), length(unifdr)), distance = FALSE, R = 199)
-  print(test_result)
+
   
   
   return( #Returns the RMSE value for the test samples.
@@ -790,7 +789,7 @@ Homo_SigmaSquaredCalculation<-function(yScaled,nu,lambda,SumOfAllTess){ #Sample 
   
   n=length(yScaled)
   SigmaSquared<-rinvgamma(1,shape=(nu+n)/2,rate=(nu*lambda+sum((yScaled-SumOfAllTess)^2))/2)
-
+  
   return(SigmaSquared)
 }
 
@@ -857,7 +856,7 @@ Homo_AlphaCalculation<-function(x,Tess,Dim,j,R_ijOld,n_ijOld,R_ijNew,n_ijNew,Sig
   
   #The Log Likelihood Ratio in the acceptence ratio
   LOGlikelihoodRatio=0.5*(log(prod(n_ijOld*SigmaSquaredMu+SigmaSquared))-log(prod(n_ijNew*SigmaSquaredMu+SigmaSquared)))+((SigmaSquaredMu/(2*SigmaSquared))*(-sum((R_ijOld^2)/(n_ijOld*SigmaSquaredMu+SigmaSquared))+sum((R_ijNew^2)/(n_ijNew*SigmaSquaredMu+SigmaSquared))))
-
+  
   #Calculating the acceptence probablity for "AD"=Adding a dimension, "RD"=Removing a dimension, "AC"=Adding a center, "RC"=Removing a center, "Change"=Changing the coordinates of a center and Swopping a dimension.
   if (Modification == "AD"){ 
     TessStructure=(dbinom(d-1,NumCovariates-1,Omega/NumCovariates))/(dbinom(d-2,NumCovariates-1,Omega/NumCovariates)*(NumCovariates-d+1))
@@ -1007,3 +1006,4 @@ plotCI(sqrt(Original_AddiVortes$Sigma_squared_stored),sqrt(Original_AddiVortes$S
 abline(mean(sqrt(Original_AddiVortes_non$sigma_squared_test)),0,lwd=3)
 abline(quantile(sqrt(Original_AddiVortes_non$sigma_squared_test),0.95),0, lty =2,lwd=3)
 abline(quantile(sqrt(Original_AddiVortes_non$sigma_squared_test),0.05),0,lty = 2,lwd=3)
+

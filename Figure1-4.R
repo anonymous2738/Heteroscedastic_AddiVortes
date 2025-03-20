@@ -1040,30 +1040,30 @@ abline(quantile(sqrt(graph_results[[3]][[2]]$sigma_squared_test),0.05),0,lty = 2
 par(mfrow=c(1,3))
 par(mgp = c(2.5, 1, 0))
 
-e_statistic<-function(pdraw,pdraw_homo,X, TestSet){#(f_test_matrix,s_test_matrix){
+###e_statistic<-function(pdraw,pdraw_homo,X, TestSet){#(f_test_matrix,s_test_matrix){
 
-  print(f(X[TestSet,]))
-  print(pdraw)
+###  print(f(X[TestSet,]))
+###  print(pdraw)
   
   ## predictive qqplot
-  yquantile_hetero = qsamp(f(X[TestSet,]),pdraw)
-  yquantile_homo = qsamp(f(X[TestSet,]),pdraw_homo)
+###  yquantile_hetero = qsamp(f(X[TestSet,]),pdraw)
+###  yquantile_homo = qsamp(f(X[TestSet,]),pdraw_homo)
 
-  unifdr = runif(10000)
-  qqplot(yquantile_homo,unifdr,pch=16,col='grey', ylab=NA, xlab = "Sample Quantile")
-  hetero_points<-qqplot(yquantile_hetero,unifdr,plot.it = FALSE)
+###  unifdr = runif(10000)
+###  qqplot(yquantile_homo,unifdr,pch=16,col='grey', ylab=NA, xlab = "Sample Quantile")
+###  hetero_points<-qqplot(yquantile_hetero,unifdr,plot.it = FALSE)
 
   
   
-  points(hetero_points,pch=16,col='black')
+###  points(hetero_points,pch=16,col='black')
 
-  abline(0,1,col='red',lwd=3)
+###  abline(0,1,col='red',lwd=3)
 
-}
+###}
 
-e_statistic(graph_results[[1]][[1]]$pdraw,graph_results[[1]][[2]]$pdraw,graph_results[[1]][[3]],graph_results[[1]][[4]])
-e_statistic(graph_results[[2]][[1]]$pdraw,graph_results[[2]][[2]]$pdraw,graph_results[[2]][[3]],graph_results[[2]][[4]])
-e_statistic(graph_results[[3]][[1]]$pdraw,graph_results[[3]][[2]]$pdraw,graph_results[[3]][[3]],graph_results[[3]][[4]])
+###e_statistic(graph_results[[1]][[1]]$pdraw,graph_results[[1]][[2]]$pdraw,graph_results[[1]][[3]],graph_results[[1]][[4]])
+###e_statistic(graph_results[[2]][[1]]$pdraw,graph_results[[2]][[2]]$pdraw,graph_results[[2]][[3]],graph_results[[2]][[4]])
+###e_statistic(graph_results[[3]][[1]]$pdraw,graph_results[[3]][[2]]$pdraw,graph_results[[3]][[3]],graph_results[[3]][[4]])
 
 
 par(mfrow=c(1,2))

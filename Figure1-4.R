@@ -226,7 +226,7 @@ AddiVortes_Algorithm<-function(y,x,m = 200, m_var = 40 ,max_iter = 1200,burn_in=
   
   combined_samples <- as.matrix(rbind(as.matrix(yquantile), as.matrix(unifdr)))
   test_result <- edist(matrix(c(yquantile,runif(10000),ncol=1)),c(np,10000))
-
+  
   
   return( #Returns the RMSE value for the test samples.
     ##test_result)
@@ -774,7 +774,7 @@ Homo_AddiVortes_Algorithm<-function(y,x,m = 200 ,max_iter = 1200,burn_in= 200,nu
   
   combined_samples <- as.matrix(rbind(as.matrix(yquantile), as.matrix(unifdr)))
   test_result <- edist(matrix(c(yquantile,runif(10000),ncol=1)),c(np,10000))
-
+  
   
   return( #Returns the RMSE value for the test samples.
     list(
@@ -1009,7 +1009,7 @@ graph_results<- foreach(i = 1:3) %dopar% {
   TestSet=TestSet[! TestSet %in% TrainSet];
   
   AddiVortes_results<-AddiVortes_Algorithm(Y[TrainSet],as.matrix(X[TrainSet,]),YTest = f(X[TestSet,]),XTest = as.matrix(X[TestSet,]),max_iter = 600,burn_in = 100,m_var = 40, nu=6,q=0.85,k=5,sd=0.8,Omega=3,lambda_rate=25)
-  Homo_AddiVortes<-Homo_AddiVortes_Algorithm(Y[TrainSet],as.matrix(X[TrainSet,]),YTest = f(X[TestSet,]),XTest = as.matrix(X[TestSet,]),max_iter = 600,burn_in = 100, nu=6,q=0.85,k=2,sd=0.8,Omega=3,lambda_rate=25)
+  Homo_AddiVortes<-Homo_AddiVortes_Algorithm(Y[TrainSet],as.matrix(X[TrainSet,]),YTest = f(X[TestSet,]),XTest = as.matrix(X[TestSet,]),max_iter = 600,burn_in = 100, nu=10,q=0.75,k=0.05,sd=0.8,Omega=3,lambda_rate=25)
   
   return(list(AddiVortes_results,Homo_AddiVortes,X,TestSet)) 
 }
@@ -1044,8 +1044,8 @@ par(mgp = c(2.5, 1, 0))
 
 ###  print(f(X[TestSet,]))
 ###  print(pdraw)
-  
-  ## predictive qqplot
+
+## predictive qqplot
 ###  yquantile_hetero = qsamp(f(X[TestSet,]),pdraw)
 ###  yquantile_homo = qsamp(f(X[TestSet,]),pdraw_homo)
 
@@ -1053,8 +1053,8 @@ par(mgp = c(2.5, 1, 0))
 ###  qqplot(yquantile_homo,unifdr,pch=16,col='grey', ylab=NA, xlab = "Sample Quantile")
 ###  hetero_points<-qqplot(yquantile_hetero,unifdr,plot.it = FALSE)
 
-  
-  
+
+
 ###  points(hetero_points,pch=16,col='black')
 
 ###  abline(0,1,col='red',lwd=3)

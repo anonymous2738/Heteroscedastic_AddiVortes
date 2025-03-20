@@ -1,7 +1,7 @@
-AddiVortes
+H-AddiVortes
 ===========
 
-An implementation of the (Bayesian) Additive Voronoi Tessellation (AddiVortes) algorithm in R.
+An implementation of the Heteroscedastic (Bayesian) Additive Voronoi Tessellation (H-AddiVortes) algorithm in R.
 
 Copyright (C) 2024
 
@@ -16,7 +16,7 @@ Setup Instructions
 
 The `energy` package in R depends on the GNU Scientific Library (GSL). If you encounter an error like **"GSL not found"**, follow these steps to resolve the issue.
 
-## Step 1: Install GSL
+## Install GSL
 
 You must have GSL installed on your system. The installation steps vary depending on your operating system:
 
@@ -47,7 +47,7 @@ gcc --version
 ```
 This should display the version of GCC included with Rtools. If it doesn't, ensure Rtools is added to your PATH.
 
-### Installing the Heteroscedastic Algorithm
+# Installing the Heteroscedastic Algorithm
 
 To install the AddiVortes functions in R, you can run the following code: 
 

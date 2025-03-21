@@ -1377,6 +1377,7 @@ for (l in 1:1){
   }
 }
 
+stopCluster(cl)
 
 boxplot(CV.AddiVortes.results[1,],HBART.results[1,],BART.results[1,],Homo_AddiVortes.results[1,],horizontal = TRUE, names = unique(c("AddiVortes-CV","hBART","BART", "AddiVortes")))
 boxplot(CV.AddiVortes.results[2,],HBART.results[3,],BART.results[3,],Homo_AddiVortes.results[2,],horizontal = TRUE, names = unique(c("AddiVortes-CV","hBART","BART","AddiVortes")))

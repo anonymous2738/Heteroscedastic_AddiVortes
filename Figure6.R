@@ -240,7 +240,7 @@ AddiVortes_Algorithm<-function(y,x,m = 200, m_var = 40 ,max_iter = 1200,burn_in=
   ##}) 
   # Calculate the mean CRPS for the test set 
   ##mean_crps <- mean(crps_values) 
-
+  
   
   return( #Returns the RMSE value for the test samples.
     ##test_result)
@@ -789,7 +789,7 @@ Homo_AddiVortes_Algorithm<-function(y,x,m = 200 ,max_iter = 1200,burn_in= 200,nu
   
   combined_samples <- as.matrix(rbind(as.matrix(yquantile), as.matrix(unifdr)))
   test_result <- edist(matrix(c(yquantile,runif(10000),ncol=1)),c(np,10000))
-
+  
   
   return( #Returns the RMSE value for the test samples.
     list(
@@ -1087,7 +1087,7 @@ for (l in 1:1){
     
     params <- hyperparametersAddiVortes[i, ]
     e_stat_value <- numeric(num_folds)
-    crps_value<- numeric(num_folds)
+    #crps_value<- numeric(num_folds)
     RMSE_value<-numeric(num_folds)
     
     # Perform cross-validation using a loop
@@ -1106,11 +1106,11 @@ for (l in 1:1){
       # Make predictions on the test set
       model_AddiVortes<-AddiVortes_Algorithm(Y[TrainSetCV],as.matrix(X[TrainSetCV,]),m,m_var = 40 ,1200,200,nu = nu,q =q,k,sd,omega,lambda,Y[TestSetCV],as.matrix(X[TestSetCV,]))
       e_stat_value[j] <- model_AddiVortes$e_stat
-      crps_value[j]<-model_AddiVortes$crps_val
+      #crps_value[j]<-model_AddiVortes$crps_val
       RMSE_value[j]<-model_AddiVortes$Out_of_sample_RMSE
     }                   
     # Store the average auc from cross-validation
-    return(c(m,k,sd,omega,lambda,nu,q,mean(e_stat_value),e_stat_value,mean(crps_value),crps_value, mean(RMSE_value),RMSE_value))
+    return(c(m,k,sd,omega,lambda,nu,q,mean(e_stat_value),e_stat_value, mean(RMSE_value),RMSE_value))
     
   }
   print(results_matrixAddiVortes)
@@ -1126,7 +1126,7 @@ for (l in 1:1){
   
   print(best_hyperparametersAddiVortes)
   print("Finished AddiVortes Tuning")
-    
+  
   #Initialize a matrix to store the results
   results_matrixHomoAddiVortes <- matrix(ncol = 10, nrow = nrow(hyperparametersAddiVortes))
   
@@ -1172,156 +1172,31 @@ for (l in 1:1){
   best_hyperparametersHOMOAddiVortes <- results_matrixHomoAddiVortes[best_index, 1:7]
   
   
-    # Initialize a matrix to store the results
-    results_matrixHBART <- matrix(ncol = 10, nrow = nrow(hyperparametersHBART))
+  # Initialize a matrix to store the results
+  results_matrixHBART <- matrix(ncol = 10, nrow = nrow(hyperparametersHBART))
+  
+  # Iterate over hyperparameter combinations
+  results_matrixHBART<-foreach (i = 1:nrow(hyperparametersHBART), .combine = rbind) %dopar% {
+    library('hbart')
+    library("energy")
+    library(scoringRules)
     
-    # Iterate over hyperparameter combinations
-    results_matrixHBART<-foreach (i = 1:nrow(hyperparametersHBART), .combine = rbind) %dopar% {
-      library('hbart')
-      library("energy")
-      library(scoringRules)
-      
-      params <- hyperparametersHBART[i, ]
-      e_stat_value <- numeric(num_folds)
-      crps_value<- numeric(num_folds)
-      RMSE_value<- numeric(num_folds)
-      
-      # Perform cross-validation using a loop
-      for (j in 1:num_folds) {
-        TrainSetCV <- unlist(folds[-j],use.names = FALSE)
-        TestSetCV <- folds[[j]]
-        
-        m <- params$m
-        k <- params$k
-        
-        
-        HBART_model <- hbart(X[TrainSetCV,],Y[TrainSetCV],as.matrix(X[TestSetCV,]),ntree = m,  k=k)
-        prediction_hbart<-predict(HBART_model ,X[TestSetCV,])
-        
-        ##dims
-        nd = nrow(prediction_hbart$mdraws)
-        np = ncol(prediction_hbart$mdraws)
-        
-        ##draw from predictive
-        pdraw = prediction_hbart$mdraws + prediction_hbart$sdraws * matrix(rnorm(nd * np), 
-                                                                           nrow = nd)
-        yquantile = qsamp(Y[TestSetCV], pdraw)
-        unifdr = runif(1000)
-        
-        pdraw<-t(pdraw)
-        # Calculate CRPS for each test observation 
-        crps_values <- sapply(1:nrow(pdraw), function(i) { 
-          crps_sample(y = Y[TestSetCV][i], dat = pdraw[i, ]) 
-        }) 
-       
-        e_stat_value[j] <- edist(matrix(c(yquantile,runif(1000),ncol=1)),c(np,1000))
-        crps_value[j]<-mean(crps_values) 
-        RMSE_value[j]<-sqrt(mean((Y[TestSetCV]-prediction_hbart$f.test.mean)^2))
-      }
-      # Store the average auc from cross-validation
-      results_matrixHBART[i,] <- cbind(params$m,params$k,mean(e_stat_value),mean(crps_values), mean(RMSE_value))
-      
-    }
+    params <- hyperparametersHBART[i, ]
+    e_stat_value <- numeric(num_folds)
+    crps_value<- numeric(num_folds)
+    RMSE_value<- numeric(num_folds)
     
-    # Find the best hyperparameter combination based on auc
-    best_index <- which.min(results_matrixHBART[, 3])
-    best_hyperparametersHBART <- results_matrixHBART[best_index, 1:2]
-    print('Finished HBART Tuning')
-    
-    # Initialize a matrix to store the results
-    results_matrixBART <- matrix(ncol = 10, nrow = nrow(hyperparametersBART))
-    
-    # Iterate over hyperparameter combinations
-    results_matrixBART<-foreach (i = 1:nrow(hyperparametersBART), .combine = rbind) %dopar% {
-      library(BayesTree)
-      library("energy")
-      library(scoringRules)
+    # Perform cross-validation using a loop
+    for (j in 1:num_folds) {
+      TrainSetCV <- unlist(folds[-j],use.names = FALSE)
+      TestSetCV <- folds[[j]]
       
-      params <- hyperparametersBART[i, ]
-      e_stat_value <- numeric(num_folds)
-      crps_value<- numeric(num_folds)
-      RMSE_value<- numeric(num_folds)
-      
-      # Perform cross-validation using a loop
-      for (j in 1:num_folds) {
-        TrainSetCV <- unlist(folds[-j],use.names = FALSE)
-        TestSetCV <- folds[[j]]
-        
-        m <- params$m
-        k <- params$k
-        
-        
-        BART_model <- bart(X[TrainSetCV,],Y[TrainSetCV],as.matrix(X[TestSetCV,]),ntree = m,  k=k)
-        
-        ##dims
-        nd = nrow(BART_model$yhat.test)
-        np = ncol(BART_model$yhat.test)
-        
-        ##draw from predictive
-        pdraw = BART_model$yhat.test + BART_model$sigma * matrix(rnorm(nd * np), 
-                                                                           nrow = nd)
-        yquantile = qsamp(Y[TestSetCV], pdraw)
-        unifdr = runif(1000)
-        
-        pdraw<-t(pdraw)
-        # Calculate CRPS for each test observation 
-        crps_values <- sapply(1:nrow(pdraw), function(i) { 
-          crps_sample(y = Y[TestSetCV][i], dat = pdraw[i, ]) 
-        }) 
-        
-        e_stat_value[j] <- edist(matrix(c(yquantile,runif(1000),ncol=1)),c(np,1000))
-        crps_value[j]<-mean(crps_values) 
-        RMSE_value[j]<-sqrt(mean((Y[TestSetCV]-BART_model$yhat.test.mean)^2))
-      }
-      # Store the average auc from cross-validation
-      results_matrixBART[i,] <- cbind(params$m,params$k,mean(e_stat_value),mean(crps_values), mean(RMSE_value))
-      
-    }
-    
-    # Find the best hyperparameter combination based on auc
-    best_index <- which.min(results_matrixBART[, 3])
-    best_hyperparametersBART <- results_matrixBART[best_index, 1:2]
-    print('Finished BART Tuning')
-    
-    CV.AddiVortes.results<-foreach(k = 1:NumOfRep, .combine = cbind) %dopar% {
-      library('FNN')
-      library('invgamma')
-      library("energy")
-      library(scoringRules)
+      m <- params$m
+      k <- params$k
       
       
-      model_AddiVortes<-AddiVortes_Algorithm(Y[TrainSet[,k]],as.matrix(X[TrainSet[,k],]),best_hyperparametersAddiVortes[1],m_var = 40 ,1200,200,nu = best_hyperparametersAddiVortes[6],q =best_hyperparametersAddiVortes[7],best_hyperparametersAddiVortes[2],best_hyperparametersAddiVortes[3],best_hyperparametersAddiVortes[4],best_hyperparametersAddiVortes[5],Y[TestSet[,k]],as.matrix(X[TestSet[,k],]))
-      e_stat_value <- model_AddiVortes$e_stat
-      crps_value<-model_AddiVortes$crps_val
-      RMSE_value<-model_AddiVortes$Out_of_sample_RMSE
-      
-      return(c(e_stat_value,crps_value,RMSE_value))
-    }
-    
-    
-    Homo_AddiVortes.results<-foreach(k = 1:NumOfRep, .combine = cbind) %dopar% {
-      library('FNN')
-      library('invgamma')
-      library("energy")
-      library(scoringRules)
-      
-      
-      model_AddiVortes<-Homo_AddiVortes_Algorithm(Y[TrainSet[,k]],as.matrix(X[TrainSet[,k],]),best_hyperparametersHOMOAddiVortes[1] ,1200,200,nu = best_hyperparametersHOMOAddiVortes[6],q =best_hyperparametersHOMOAddiVortes[7],best_hyperparametersHOMOAddiVortes[2],best_hyperparametersHOMOAddiVortes[3],best_hyperparametersHOMOAddiVortes[4],best_hyperparametersHOMOAddiVortes[5],Y[TestSet[,k]],as.matrix(X[TestSet[,k],]))
-      e_stat_value <- model_AddiVortes$e_stat
-      #crps_value<-model_AddiVortes$crps_val
-      RMSE_value<-model_AddiVortes$Out_of_sample_RMSE
-      
-      return(c(e_stat_value,RMSE_value))
-    }
-
-    
-    HBART.results<-foreach(k = 1:NumOfRep, .combine = cbind) %dopar% {
-      library('hbart')
-      library(energy)
-      library(scoringRules)
-      
-      HBART_model <- hbart(X[TrainSet[,k],],Y[TrainSet[,k]],as.matrix(X[TestSet[,k],]),ntree = best_hyperparametersHBART[1],  k=best_hyperparametersHBART[2])
-      prediction_hbart<-predict(HBART_model ,X[TestSet[,k],])
+      HBART_model <- hbart(X[TrainSetCV,],Y[TrainSetCV],as.matrix(X[TestSetCV,]),ntree = m,  k=k)
+      prediction_hbart<-predict(HBART_model ,X[TestSetCV,])
       
       ##dims
       nd = nrow(prediction_hbart$mdraws)
@@ -1330,29 +1205,54 @@ for (l in 1:1){
       ##draw from predictive
       pdraw = prediction_hbart$mdraws + prediction_hbart$sdraws * matrix(rnorm(nd * np), 
                                                                          nrow = nd)
-      yquantile = qsamp(Y[TestSet[,k]], pdraw)
+      yquantile = qsamp(Y[TestSetCV], pdraw)
       unifdr = runif(1000)
       
       pdraw<-t(pdraw)
       # Calculate CRPS for each test observation 
       crps_values <- sapply(1:nrow(pdraw), function(i) { 
-        crps_sample(y = Y[TestSet[,k]][i], dat = pdraw[i, ]) 
+        crps_sample(y = Y[TestSetCV][i], dat = pdraw[i, ]) 
       }) 
       
-      e_stat_value <- edist(matrix(c(yquantile,runif(1000),ncol=1)),c(np,1000))
-      crps_value<-mean(crps_values) 
-      RMSE_value<-sqrt(mean((Y[TestSet[,k]]-prediction_hbart$f.test.mean)^2))
-      
-      return(c(e_stat_value,crps_value,RMSE_value))
+      e_stat_value[j] <- edist(matrix(c(yquantile,runif(1000),ncol=1)),c(np,1000))
+      crps_value[j]<-mean(crps_values) 
+      RMSE_value[j]<-sqrt(mean((Y[TestSetCV]-prediction_hbart$f.test.mean)^2))
     }
+    # Store the average auc from cross-validation
+    results_matrixHBART[i,] <- cbind(params$m,params$k,mean(e_stat_value),mean(crps_values), mean(RMSE_value))
     
-    BART.results<-foreach(k = 1:NumOfRep, .combine = cbind) %dopar% {
-      library('BayesTree')
-      library(energy)
-      library(scoringRules)
+  }
+  
+  # Find the best hyperparameter combination based on auc
+  best_index <- which.min(results_matrixHBART[, 3])
+  best_hyperparametersHBART <- results_matrixHBART[best_index, 1:2]
+  print('Finished HBART Tuning')
+  
+  # Initialize a matrix to store the results
+  results_matrixBART <- matrix(ncol = 10, nrow = nrow(hyperparametersBART))
+  
+  # Iterate over hyperparameter combinations
+  results_matrixBART<-foreach (i = 1:nrow(hyperparametersBART), .combine = rbind) %dopar% {
+    library(BayesTree)
+    library("energy")
+    library(scoringRules)
+    
+    params <- hyperparametersBART[i, ]
+    e_stat_value <- numeric(num_folds)
+    crps_value<- numeric(num_folds)
+    RMSE_value<- numeric(num_folds)
+    
+    # Perform cross-validation using a loop
+    for (j in 1:num_folds) {
+      TrainSetCV <- unlist(folds[-j],use.names = FALSE)
+      TestSetCV <- folds[[j]]
       
-      BART_model <- bart(X[TrainSet[,k],],Y[TrainSet[,k]],as.matrix(X[TestSet[,k],]),ntree = best_hyperparametersBART[1],  k=best_hyperparametersBART[2])
-
+      m <- params$m
+      k <- params$k
+      
+      
+      BART_model <- bart(X[TrainSetCV,],Y[TrainSetCV],as.matrix(X[TestSetCV,]),ntree = m,  k=k)
+      
       ##dims
       nd = nrow(BART_model$yhat.test)
       np = ncol(BART_model$yhat.test)
@@ -1360,24 +1260,125 @@ for (l in 1:1){
       ##draw from predictive
       pdraw = BART_model$yhat.test + BART_model$sigma * matrix(rnorm(nd * np), 
                                                                nrow = nd)
-      yquantile = qsamp(Y[TestSet[,k]], pdraw)
+      yquantile = qsamp(Y[TestSetCV], pdraw)
       unifdr = runif(1000)
       
       pdraw<-t(pdraw)
       # Calculate CRPS for each test observation 
       crps_values <- sapply(1:nrow(pdraw), function(i) { 
-        crps_sample(y = Y[TestSet[,k]][i], dat = pdraw[i, ]) 
+        crps_sample(y = Y[TestSetCV][i], dat = pdraw[i, ]) 
       }) 
       
-      e_stat_value <- edist(matrix(c(yquantile,runif(1000),ncol=1)),c(np,1000))
-      crps_value<-mean(crps_values) 
-      RMSE_value<-sqrt(mean((Y[TestSet[,k]]-BART_model$yhat.test.mean)^2))
-      
-      return(c(e_stat_value,crps_value,RMSE_value))
+      e_stat_value[j] <- edist(matrix(c(yquantile,runif(1000),ncol=1)),c(np,1000))
+      crps_value[j]<-mean(crps_values) 
+      RMSE_value[j]<-sqrt(mean((Y[TestSetCV]-BART_model$yhat.test.mean)^2))
     }
+    # Store the average auc from cross-validation
+    results_matrixBART[i,] <- cbind(params$m,params$k,mean(e_stat_value),mean(crps_values), mean(RMSE_value))
+    
+  }
+  
+  # Find the best hyperparameter combination based on auc
+  best_index <- which.min(results_matrixBART[, 3])
+  best_hyperparametersBART <- results_matrixBART[best_index, 1:2]
+  print('Finished BART Tuning')
+  
+  CV.AddiVortes.results<-foreach(k = 1:NumOfRep, .combine = cbind) %dopar% {
+    library('FNN')
+    library('invgamma')
+    library("energy")
+    library(scoringRules)
+    
+    
+    model_AddiVortes<-AddiVortes_Algorithm(Y[TrainSet[,k]],as.matrix(X[TrainSet[,k],]),best_hyperparametersAddiVortes[1],m_var = 40 ,1200,200,nu = best_hyperparametersAddiVortes[6],q =best_hyperparametersAddiVortes[7],best_hyperparametersAddiVortes[2],best_hyperparametersAddiVortes[3],best_hyperparametersAddiVortes[4],best_hyperparametersAddiVortes[5],Y[TestSet[,k]],as.matrix(X[TestSet[,k],]))
+    e_stat_value <- model_AddiVortes$e_stat
+    crps_value<-model_AddiVortes$crps_val
+    RMSE_value<-model_AddiVortes$Out_of_sample_RMSE
+    
+    return(c(e_stat_value,crps_value,RMSE_value))
+  }
+  
+  
+  Homo_AddiVortes.results<-foreach(k = 1:NumOfRep, .combine = cbind) %dopar% {
+    library('FNN')
+    library('invgamma')
+    library("energy")
+    library(scoringRules)
+    
+    
+    model_AddiVortes<-Homo_AddiVortes_Algorithm(Y[TrainSet[,k]],as.matrix(X[TrainSet[,k],]),best_hyperparametersHOMOAddiVortes[1] ,1200,200,nu = best_hyperparametersHOMOAddiVortes[6],q =best_hyperparametersHOMOAddiVortes[7],best_hyperparametersHOMOAddiVortes[2],best_hyperparametersHOMOAddiVortes[3],best_hyperparametersHOMOAddiVortes[4],best_hyperparametersHOMOAddiVortes[5],Y[TestSet[,k]],as.matrix(X[TestSet[,k],]))
+    e_stat_value <- model_AddiVortes$e_stat
+    #crps_value<-model_AddiVortes$crps_val
+    RMSE_value<-model_AddiVortes$Out_of_sample_RMSE
+    
+    return(c(e_stat_value,RMSE_value))
+  }
+  
+  
+  HBART.results<-foreach(k = 1:NumOfRep, .combine = cbind) %dopar% {
+    library('hbart')
+    library(energy)
+    library(scoringRules)
+    
+    HBART_model <- hbart(X[TrainSet[,k],],Y[TrainSet[,k]],as.matrix(X[TestSet[,k],]),ntree = best_hyperparametersHBART[1],  k=best_hyperparametersHBART[2])
+    prediction_hbart<-predict(HBART_model ,X[TestSet[,k],])
+    
+    ##dims
+    nd = nrow(prediction_hbart$mdraws)
+    np = ncol(prediction_hbart$mdraws)
+    
+    ##draw from predictive
+    pdraw = prediction_hbart$mdraws + prediction_hbart$sdraws * matrix(rnorm(nd * np), 
+                                                                       nrow = nd)
+    yquantile = qsamp(Y[TestSet[,k]], pdraw)
+    unifdr = runif(1000)
+    
+    pdraw<-t(pdraw)
+    # Calculate CRPS for each test observation 
+    crps_values <- sapply(1:nrow(pdraw), function(i) { 
+      crps_sample(y = Y[TestSet[,k]][i], dat = pdraw[i, ]) 
+    }) 
+    
+    e_stat_value <- edist(matrix(c(yquantile,runif(1000),ncol=1)),c(np,1000))
+    crps_value<-mean(crps_values) 
+    RMSE_value<-sqrt(mean((Y[TestSet[,k]]-prediction_hbart$f.test.mean)^2))
+    
+    return(c(e_stat_value,crps_value,RMSE_value))
+  }
+  
+  BART.results<-foreach(k = 1:NumOfRep, .combine = cbind) %dopar% {
+    library('BayesTree')
+    library(energy)
+    library(scoringRules)
+    
+    BART_model <- bart(X[TrainSet[,k],],Y[TrainSet[,k]],as.matrix(X[TestSet[,k],]),ntree = best_hyperparametersBART[1],  k=best_hyperparametersBART[2])
+    
+    ##dims
+    nd = nrow(BART_model$yhat.test)
+    np = ncol(BART_model$yhat.test)
+    
+    ##draw from predictive
+    pdraw = BART_model$yhat.test + BART_model$sigma * matrix(rnorm(nd * np), 
+                                                             nrow = nd)
+    yquantile = qsamp(Y[TestSet[,k]], pdraw)
+    unifdr = runif(1000)
+    
+    pdraw<-t(pdraw)
+    # Calculate CRPS for each test observation 
+    crps_values <- sapply(1:nrow(pdraw), function(i) { 
+      crps_sample(y = Y[TestSet[,k]][i], dat = pdraw[i, ]) 
+    }) 
+    
+    e_stat_value <- edist(matrix(c(yquantile,runif(1000),ncol=1)),c(np,1000))
+    crps_value<-mean(crps_values) 
+    RMSE_value<-sqrt(mean((Y[TestSet[,k]]-BART_model$yhat.test.mean)^2))
+    
+    return(c(e_stat_value,crps_value,RMSE_value))
+  }
 }
 
 
 boxplot(CV.AddiVortes.results[1,],HBART.results[1,],BART.results[1,],Homo_AddiVortes.results[1,],horizontal = TRUE, names = unique(c("AddiVortes-CV","hBART","BART", "AddiVortes")))
-boxplot(CV.AddiVortes.results[2,],HBART.results[2,],BART.results[2,],horizontal = TRUE, names = unique(c("AddiVortes-CV","hBART","BART")))
-boxplot(CV.AddiVortes.results[3,],HBART.results[3,],BART.results[3,],Homo_AddiVortes.results[2,],horizontal = TRUE, names = unique(c("AddiVortes-CV","hBART","BART","AddiVortes")))
+boxplot(CV.AddiVortes.results[2,],HBART.results[3,],BART.results[3,],Homo_AddiVortes.results[2,],horizontal = TRUE, names = unique(c("AddiVortes-CV","hBART","BART","AddiVortes")))
+
+
